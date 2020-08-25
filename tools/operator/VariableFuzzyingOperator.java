@@ -19,22 +19,17 @@
 package grakn.verification.tools.operator;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import graql.lang.Graql;
-import graql.lang.pattern.Pattern;
+import graql.lang.pattern.Conjunction;
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static grakn.verification.tools.operator.Utils.sanitise;
 
 /**
  * Introduces the variable fuzzying operator - it fuzzes each variable in the input pattern such that
@@ -48,7 +43,7 @@ public class VariableFuzzyingOperator implements Operator{
     private final static int varLength = 3;
 
     @Override
-    public Stream<Pattern> apply(Pattern src, TypeContext ctx) {
+    public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
         //generate new variables and how they map to existing variables
         Map<Variable, Variable> varTransforms = new HashMap<>();
         src.statements().stream().flatMap(s -> s.variables().stream())

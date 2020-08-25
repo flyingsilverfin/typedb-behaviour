@@ -29,7 +29,8 @@ java_library(
     deps = [
         "@maven//:com_google_guava_guava",
         "@graknlabs_graql//java:graql",
-        "@graknlabs_graql//java/pattern"
+        "@graknlabs_graql//java/pattern",
+        "@graknlabs_common//:common",
     ],
 )
 

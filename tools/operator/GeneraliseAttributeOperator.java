@@ -22,16 +22,15 @@ import com.google.common.collect.Sets;
 import grakn.verification.tools.operator.range.Range;
 import grakn.verification.tools.operator.range.Ranges;
 import graql.lang.Graql;
+import graql.lang.pattern.Conjunction;
 import graql.lang.pattern.Pattern;
-import graql.lang.property.HasAttributeProperty;
-import graql.lang.property.IsaProperty;
-import graql.lang.property.ValueProperty;
-import graql.lang.property.VarProperty;
-import graql.lang.statement.Statement;
-import graql.lang.statement.Variable;
+import graql.lang.pattern.property.ThingProperty;
+import graql.lang.pattern.variable.BoundVariable;
+
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,59 +40,51 @@ import java.util.stream.Stream;
 public class GeneraliseAttributeOperator implements Operator{
 
     @Override
-    public Stream<Pattern> apply(Pattern src, TypeContext ctx) {
-        List<Set<Statement>> transformedStatements = src.statements().stream()
-                .map(this::transformStatement)
+    public Stream<? extends Conjunction<? extends Pattern>> apply(Conjunction<?> src, TypeContext ctx) {
+        List<Set<BoundVariable<?>>> transformedStatements = src.variables()
+                .map(var -> transformStatement(var))
                 .collect(Collectors.toList());
         return Sets.cartesianProduct(transformedStatements).stream()
-                .map(Graql::and)
-                .filter(p -> !p.equals(src))
-                .map(p -> Graql.and(
-                        p.statements().stream()
-                                .filter(st -> !st.properties().isEmpty())
-                                .collect(Collectors.toSet())
-                        )
-                );
+                .map(stmtList -> Graql.and(stmtList))
+                .filter(p -> !p.equals(src));
     }
 
-    private Set<Statement> transformStatement(Statement src){
-        Variable var = src.var();
-        Set<HasAttributeProperty> attributes = src.getProperties(HasAttributeProperty.class).collect(Collectors.toSet());
+    private <T extends BoundVariable<T>> Set<BoundVariable<T>> transformStatement(BoundVariable<T> src){
+        if (!src.isThing()) {
+            return Sets.newHashSet(src);
+        }
+
+        List<ThingProperty.Has> attributes = src.asThing().has();
         if (attributes.isEmpty()) return Sets.newHashSet(src);
 
-        Set<HasAttributeProperty> transformedProps = attributes.stream()
+        Set<ThingProperty.Has> transformedProps = attributes.stream()
                 .map(this::transformAttributeProperty)
                 .collect(Collectors.toSet());
 
-        Set<Statement> transformedStatements = Sets.newHashSet(src);
+        Set<BoundVariable> transformedStatements = Sets.newHashSet(src);
         transformedProps.stream()
                 .map(o -> {
-                    LinkedHashSet<VarProperty> properties = new LinkedHashSet<>(src.properties());
+                    ArrayList<ThingProperty> properties = new ArrayList<>(src.asThing().properties());
                     properties.removeAll(attributes);
                     properties.addAll(transformedProps);
-                    return Statement.create(var, properties);
+                    return src.withoutProperties().asThing().asSameThingWith(properties);
                 })
                 .forEach(transformedStatements::add);
 
         return transformedStatements;
     }
 
-    private HasAttributeProperty transformAttributeProperty(HasAttributeProperty src){
-        LinkedHashSet<VarProperty> properties = src.attribute().properties().stream()
-                .filter(p -> !(p instanceof ValueProperty))
+    private ThingProperty.Has transformAttributeProperty(ThingProperty.Has src){
+        LinkedHashSet<ThingProperty> properties = src.variable().properties().stream()
+                .filter(p -> !(p instanceof ThingProperty.Value))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
-        Range range = src.attribute().getProperties(ValueProperty.class)
-                .map(Ranges::create)
-                .filter(Objects::nonNull)
-                .reduce(Range::merge)
-                .orElse(null);
-        if (range == null) return src;
+        Optional<Range> range = src.variable().valueProperty().map(vp -> Ranges.create(vp));
+        if (!range.isPresent()) return src;
 
-        properties.addAll(range.generalise().toProperties());
+        properties.addAll(range.get().generalise().toProperties());
 
-        Statement attribute = src.attribute();
-        String type = attribute.getProperty(IsaProperty.class).orElse(null).type().getType().orElse(null);
-        return new HasAttributeProperty(type, Statement.create(attribute.var(), properties));
+        String type = src.type();
+        return new ThingProperty.Has(type, Statement.create(attribute.var(), properties));
     }
 
 }

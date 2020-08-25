@@ -15,28 +15,28 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-package(default_visibility = ["//visibility:public"])
-
-load("@graknlabs_dependencies//tool/checkstyle:rules.bzl", "checkstyle_test")
-
-java_library(
-    name = "integrity",
-    srcs = glob([
-        "*.java",
-        "schema/*.java"
-    ]),
-    deps = [
-        "@graknlabs_client_java//:client-java",
-        "@graknlabs_graql//java:graql",
-        "@graknlabs_common//:common",
-        "@maven//:com_google_guava_guava",
-        "@maven//:org_slf4j_slf4j_api",
-    ],
-)
-
-checkstyle_test(
-    name = "checkstyle",
-    targets = [
-        ":integrity",
-    ],
-)
+#package(default_visibility = ["//visibility:public"])
+#
+#load("@graknlabs_dependencies//tool/checkstyle:rules.bzl", "checkstyle_test")
+#
+#java_library(
+#    name = "integrity",
+#    srcs = glob([
+#        "*.java",
+#        "schema/*.java"
+#    ]),
+#    deps = [
+#        "@graknlabs_client_java//:client-java",
+#        "@graknlabs_graql//java:graql",
+#        "@graknlabs_common//:common",
+#        "@maven//:com_google_guava_guava",
+#        "@maven//:org_slf4j_slf4j_api",
+#    ],
+#)
+#
+#checkstyle_test(
+#    name = "checkstyle",
+#    targets = [
+#        ":integrity",
+#    ],
+#)

@@ -21,6 +21,7 @@ package grakn.verification.tools.operator;
 import com.google.common.collect.Sets;
 import graql.lang.Graql;
 import graql.lang.pattern.Pattern;
+import graql.lang.pattern.variable.Variable;
 import graql.lang.property.RelationProperty;
 import graql.lang.statement.Statement;
 
@@ -44,7 +45,7 @@ public class Utils {
     static Pattern sanitise(Pattern p, Pattern src){
         Set<Variable> toRemove = Sets.difference(rolePlayerVariables(src), rolePlayerVariables(p));
         return Graql.and(
-                p.statements().stream()
+                p.variables().stream()
                         .filter(st -> !st.properties().isEmpty())
                         .filter(s -> !toRemove.contains(s.var()))
                         .collect(Collectors.toList())

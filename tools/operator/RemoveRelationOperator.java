@@ -18,13 +18,14 @@
 
 package grakn.verification.tools.operator;
 
+import graql.lang.pattern.Conjunction;
 import graql.lang.pattern.Pattern;
 
 import java.util.stream.Stream;
 
 public class RemoveRelationOperator implements Operator {
     @Override
-    public Stream<Pattern> apply(Pattern src, TypeContext ctx) {
+    public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
         return null;
     }
 }

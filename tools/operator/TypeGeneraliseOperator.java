@@ -19,7 +19,7 @@
 package grakn.verification.tools.operator;
 
 import graql.lang.Graql;
-import graql.lang.pattern.Pattern;
+import graql.lang.pattern.Conjunction;
 import graql.lang.property.IsaProperty;
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
@@ -40,9 +40,9 @@ public class TypeGeneraliseOperator implements Operator {
     private static String TYPE_POSTFIX = "type";
 
     @Override
-    public Stream<Pattern> apply(Pattern src, TypeContext ctx) {
+    public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
         Set<Statement> originalStatements = src.statements();
-        Set<Pattern> transformedPatterns = new HashSet<>();
+        Set<Conjunction> transformedPatterns = new HashSet<>();
 
         originalStatements.forEach(s -> {
             Statement transformed = transformStatement(s, ctx);

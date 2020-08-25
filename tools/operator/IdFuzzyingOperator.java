@@ -20,7 +20,7 @@ package grakn.verification.tools.operator;
 
 import com.google.common.collect.Sets;
 import graql.lang.Graql;
-import graql.lang.pattern.Pattern;
+import graql.lang.pattern.Conjunction;
 import graql.lang.property.IdProperty;
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 public class IdFuzzyingOperator implements Operator{
 
     @Override
-    public Stream<Pattern> apply(Pattern src, TypeContext ctx) {
+    public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
         if (!src.statements().stream().flatMap(s -> s.getProperties(IdProperty.class)).findFirst().isPresent()){
             return Stream.of(src);
         }

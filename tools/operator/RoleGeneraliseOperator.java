@@ -20,7 +20,7 @@ package grakn.verification.tools.operator;
 
 import com.google.common.collect.Sets;
 import graql.lang.Graql;
-import graql.lang.pattern.Pattern;
+import graql.lang.pattern.Conjunction;
 import graql.lang.property.RelationProperty;
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
@@ -44,7 +44,7 @@ public class RoleGeneraliseOperator implements Operator {
     private static String TYPE_POSTFIX = "role";
 
     @Override
-    public Stream<Pattern> apply(Pattern src, TypeContext ctx) {
+    public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
         //transform each statement into a set of its possible generalisations
         List<Set<Statement>> transformedStatements = src.statements().stream()
                 .map(s -> transformStatement(s, ctx))

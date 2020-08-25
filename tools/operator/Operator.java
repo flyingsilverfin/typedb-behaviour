@@ -18,6 +18,7 @@
 
 package grakn.verification.tools.operator;
 
+import graql.lang.pattern.Conjunction;
 import graql.lang.pattern.Pattern;
 
 import java.util.stream.Stream;
@@ -37,5 +38,5 @@ public interface Operator {
      * @ctx type context for patterns
      * @return set of patterns resulting from operator application
      */
-    Stream<Pattern> apply(Pattern src, TypeContext ctx);
+    Stream<? extends Conjunction<? extends Pattern>> apply(Conjunction<?> src, TypeContext ctx);
 }

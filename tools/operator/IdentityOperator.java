@@ -18,6 +18,7 @@
 
 package grakn.verification.tools.operator;
 
+import graql.lang.pattern.Conjunction;
 import graql.lang.pattern.Pattern;
 
 import java.util.stream.Stream;
@@ -31,7 +32,7 @@ import java.util.stream.Stream;
 public class IdentityOperator implements Operator {
 
     @Override
-    public Stream<Pattern> apply(Pattern src, TypeContext ctx) {
+    public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
         return Stream.of(src);
     }
 }
