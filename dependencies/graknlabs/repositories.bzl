@@ -44,14 +44,6 @@ def graknlabs_graql():
         path = "../graql",
     )
 
-def graknlabs_common():
-    git_repository(
-        name = "graknlabs_common",
-        remote = "https://github.com/graknlabs/common",
-        commit = "72ab1a6de9489eb43b8081eda53d29aab9e908c3" # sync-marker: do not remove this comment, this is used for sync-dependencies by @graknlabs_common
-    )
-
-
 def graknlabs_client_java():
     git_repository(
         name = "graknlabs_client_java",

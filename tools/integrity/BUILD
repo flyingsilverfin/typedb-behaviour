@@ -15,12 +15,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-#package(default_visibility = ["//visibility:public"])
-#
+package(default_visibility = ["//visibility:public"])
+
 #load("@graknlabs_dependencies//tool/checkstyle:rules.bzl", "checkstyle_test")
 #
-#java_library(
-#    name = "integrity",
+java_library(
+    name = "integrity",
+    srcs = []
+)
 #    srcs = glob([
 #        "*.java",
 #        "schema/*.java"
