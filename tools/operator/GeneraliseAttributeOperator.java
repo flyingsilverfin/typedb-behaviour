@@ -26,6 +26,7 @@ import graql.lang.pattern.Conjunction;
 import graql.lang.pattern.Pattern;
 import graql.lang.pattern.property.ThingProperty;
 import graql.lang.pattern.variable.BoundVariable;
+import graql.lang.pattern.variable.ThingVariable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -41,7 +42,7 @@ public class GeneraliseAttributeOperator implements Operator{
 
     @Override
     public Stream<? extends Conjunction<? extends Pattern>> apply(Conjunction<?> src, TypeContext ctx) {
-        List<Set<BoundVariable<?>>> transformedStatements = src.variables()
+        List<Set<? extends BoundVariable<?>>> transformedStatements = src.variables()
                 .map(var -> transformStatement(var))
                 .collect(Collectors.toList());
         return Sets.cartesianProduct(transformedStatements).stream()
@@ -49,25 +50,28 @@ public class GeneraliseAttributeOperator implements Operator{
                 .filter(p -> !p.equals(src));
     }
 
-    private <T extends BoundVariable<T>> Set<BoundVariable<T>> transformStatement(BoundVariable<T> src){
+    private <T extends BoundVariable<T>> Set<? extends BoundVariable<T>> transformStatement(BoundVariable<T> src){
         if (!src.isThing()) {
             return Sets.newHashSet(src);
         }
 
-        List<ThingProperty.Has> attributes = src.asThing().has();
-        if (attributes.isEmpty()) return Sets.newHashSet(src);
+        ThingVariable<? extends ThingVariable<?>> thingVariable = src.asThing();
+
+        List<ThingProperty.Has> attributes = thingVariable.has();
+        if (attributes.isEmpty()) return thingVariable;
 
         Set<ThingProperty.Has> transformedProps = attributes.stream()
                 .map(this::transformAttributeProperty)
                 .collect(Collectors.toSet());
 
-        Set<BoundVariable> transformedStatements = Sets.newHashSet(src);
+        Set<BoundVariable<T>> transformedStatements = Sets.newHashSet(src);
         transformedProps.stream()
                 .map(o -> {
                     ArrayList<ThingProperty> properties = new ArrayList<>(src.asThing().properties());
                     properties.removeAll(attributes);
                     properties.addAll(transformedProps);
-                    return src.withoutProperties().asThing().asSameThingWith(properties);
+                    T t = src.withoutProperties();
+                    return t.asThing().asSameThingWith(properties);
                 })
                 .forEach(transformedStatements::add);
 
