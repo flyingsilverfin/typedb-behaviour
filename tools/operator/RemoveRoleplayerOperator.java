@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2020 Grakn Labs
+ * Copyright (C) 2020 Grakn Labs
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,13 +21,11 @@ package grakn.verification.tools.operator;
 import com.google.common.collect.Sets;
 import graql.lang.Graql;
 import graql.lang.pattern.Conjunction;
-import graql.lang.property.RelationProperty;
-import graql.lang.property.VarProperty;
-import graql.lang.statement.Statement;
-import graql.lang.statement.Variable;
+import graql.lang.pattern.property.ThingProperty;
+import graql.lang.pattern.variable.ThingVariable;
+import graql.lang.pattern.variable.Variable;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,50 +40,52 @@ import static java.util.stream.Collectors.toSet;
  * Generates a set of generalised patterns by removing existing roleplayers.
  * The set is computed from a Cartesian product of sets of statements each containing a single roleplayer removal
  * - the set is computed in analogous fashion to RemoveSubstitutionOperator for substitution removal.
- *
  */
 public class RemoveRoleplayerOperator implements Operator {
 
     @Override
     public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
-        if (!src.statements().stream().flatMap(s -> s.getProperties(RelationProperty.class)).findFirst().isPresent()){
+        // if there are no players present, return original
+        if (!src.variables()
+                .filter(Variable::isThing)
+                .map(s -> s.asThing().relation().map(rel -> rel.players()).isPresent())
+                .findAny().isPresent()) {
             return Stream.of(src);
         }
-        List<Set<Statement>> transformedStatements = src.statements().stream()
-                .map(this::transformStatement)
+
+        List<Set<ThingVariable<?>>> transformedStatements = src.variables()
+                .filter(var -> var.isThing())
+                .filter(var -> var.asThing().relation().isPresent())
+                .map(var -> transformStatement(var.asThing()))
                 .collect(Collectors.toList());
         return Sets.cartesianProduct(transformedStatements).stream()
                 .map(Graql::and)
                 .filter(p -> !p.equals(src))
-                .map(p -> sanitise(p, src))
-                .filter(p -> !p.statements().isEmpty());
+                .map(p -> sanitise(p, src));
     }
 
-    private Set<Statement> transformStatement(Statement src){
-        Variable var = src.var();
-        RelationProperty relProperty = src.getProperty(RelationProperty.class).orElse(null);
-        if (relProperty == null) return Sets.newHashSet(src);
+    private Set<ThingVariable<?>> transformStatement(ThingVariable<?> src) {
+        ThingProperty.Relation relProperty = src.relation().get();
+        Set<Optional<ThingProperty.Relation>> transformedProps = transformRelationProperty(relProperty);
 
-        Set<Optional<RelationProperty>> transformedProps = transformRelationProperty(relProperty);
-
-        Set<Statement> transformedStatements = Sets.newHashSet(src);
+        Set<ThingVariable<?>> transformedStatements = Sets.newHashSet(src);
         transformedProps.stream()
                 .map(o -> {
-                    LinkedHashSet<VarProperty> properties = new LinkedHashSet<>(src.properties());
+                    List<ThingProperty> properties = new ArrayList<>(src.properties());
                     properties.remove(relProperty);
                     o.ifPresent(properties::add);
-                    return Statement.create(var, properties);
+                    return src.asUnbound().asThing().asSameThingWith(properties);
                 })
                 .forEach(transformedStatements::add);
 
         return transformedStatements;
     }
 
-    private Set<Optional<RelationProperty>> transformRelationProperty(RelationProperty prop){
-        List<Set<Optional<RelationProperty.RolePlayer>>> rPconfigurations = new ArrayList<>();
+    private Set<Optional<ThingProperty.Relation>> transformRelationProperty(ThingProperty.Relation prop) {
+        List<Set<Optional<ThingProperty.Relation.RolePlayer>>> rPconfigurations = new ArrayList<>();
 
-        prop.relationPlayers().forEach(rp -> {
-            Set<Optional<RelationProperty.RolePlayer>> rps = Sets.newHashSet(Optional.of(rp));
+        prop.players().forEach(rp -> {
+            Set<Optional<ThingProperty.Relation.RolePlayer>> rps = Sets.newHashSet(Optional.of(rp));
             rps.add(Optional.empty());
             rPconfigurations.add(rps);
         });

@@ -20,7 +20,12 @@ package grakn.verification.tools.operator;
 
 import com.google.common.collect.Sets;
 import graql.lang.Graql;
+import graql.lang.pattern.Conjunction;
 import graql.lang.pattern.Pattern;
+import graql.lang.pattern.property.ThingProperty;
+import graql.lang.pattern.variable.ThingVariable;
+import graql.lang.pattern.variable.TypeVariable;
+import graql.lang.pattern.variable.UnboundVariable;
 import graql.lang.pattern.variable.Variable;
 import graql.lang.property.RelationProperty;
 import graql.lang.statement.Statement;
@@ -42,12 +47,11 @@ public class Utils {
      * @param src original Pattern
      * @return
      */
-    static Pattern sanitise(Pattern p, Pattern src){
-        Set<Variable> toRemove = Sets.difference(rolePlayerVariables(src), rolePlayerVariables(p));
+    static Conjunction<?> sanitise(Conjunction<?> p, Conjunction<?> src){
+        Set<ThingVariable<?>> toRemove = Sets.difference(rolePlayerVariables(src), rolePlayerVariables(p));
         return Graql.and(
-                p.variables().stream()
-                        .filter(st -> !st.properties().isEmpty())
-                        .filter(s -> !toRemove.contains(s.var()))
+                p.variables()
+                        .filter(s -> !toRemove.contains(s))
                         .collect(Collectors.toList())
         );
     }
@@ -62,16 +66,20 @@ public class Utils {
                 .collect(Collectors.toSet());
     }
 
-    static RelationProperty relationProperty(Collection<RelationProperty.RolePlayer> relationPlayers) {
+    static ThingProperty.Relation relationProperty(Collection<ThingProperty.Relation.RolePlayer> relationPlayers) {
         if (relationPlayers.isEmpty()) return null;
-        Statement var = Graql.var();
-        List<RelationProperty.RolePlayer> sortedRPs = relationPlayers.stream()
-                .sorted(Comparator.comparing(rp -> rp.getPlayer().var().symbol()))
+        ThingVariable.Relation var = null;
+        List<ThingProperty.Relation.RolePlayer> sortedRPs = relationPlayers.stream()
+                .sorted(Comparator.comparing(rp -> rp.player().name()))
                 .collect(Collectors.toList());
-        for (RelationProperty.RolePlayer rp : sortedRPs) {
-            Statement rolePattern = rp.getRole().orElse(null);
-            var = rolePattern != null ? var.rel(rolePattern, rp.getPlayer()) : var.rel(rp.getPlayer());
+        for (ThingProperty.Relation.RolePlayer rp : sortedRPs) {
+            TypeVariable rolePattern = rp.roleType().orElse(null);
+            if (var == null) {
+                var = rolePattern != null ? Graql.var().rel(rolePattern.asUnbound(), rp.player().asUnbound()) : Graql.var().rel(rp.player().asUnbound());
+            } else {
+                var = rolePattern != null ? var.rel(rolePattern.asUnbound(), rp.player().asUnbound()) :  var.rel(rp.player().asUnbound());
+            }
         }
-        return var.getProperty(RelationProperty.class).orElse(null);
+        return var.relation().orElse(null);
     }
 }
