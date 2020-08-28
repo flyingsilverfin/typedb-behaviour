@@ -27,8 +27,10 @@ import graql.lang.pattern.Pattern;
 import graql.lang.pattern.property.ThingProperty;
 import graql.lang.pattern.variable.BoundVariable;
 import graql.lang.pattern.variable.ThingVariable;
+import graql.lang.pattern.variable.UnboundVariable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -38,11 +40,17 @@ import java.util.stream.Stream;
 
 //TODO: this assumes there is no stray value properties (not attached to HasAttributeProperty)
 //TODO: we currently only convert Number attributes
+
+
+// TODO we may need to look at using `asGraph()` to solve these
+// TODO asGraph will combine multiple mentions of one variable into a single Variable
 public class GeneraliseAttributeOperator implements Operator{
 
     @Override
     public Stream<? extends Conjunction<? extends Pattern>> apply(Conjunction<?> src, TypeContext ctx) {
-        List<Set<? extends BoundVariable<?>>> transformedStatements = src.variables()
+        List<Set<ThingVariable<?>>> transformedStatements = src.variables()
+                .filter(var -> var.isThing())
+                .map(var -> var.asThing())
                 .map(var -> transformStatement(var))
                 .collect(Collectors.toList());
         return Sets.cartesianProduct(transformedStatements).stream()
@@ -50,28 +58,26 @@ public class GeneraliseAttributeOperator implements Operator{
                 .filter(p -> !p.equals(src));
     }
 
-    private <T extends BoundVariable<T>> Set<? extends BoundVariable<T>> transformStatement(BoundVariable<T> src){
-        if (!src.isThing()) {
-            return Sets.newHashSet(src);
-        }
+    private Set<ThingVariable<?>> transformStatement(ThingVariable<?> src){
+        List<ThingProperty.Has> attributes = src.has();
+        if (attributes.isEmpty()) return Sets.newHashSet(src);
 
-        ThingVariable<? extends ThingVariable<?>> thingVariable = src.asThing();
-
-        List<ThingProperty.Has> attributes = thingVariable.has();
-        if (attributes.isEmpty()) return thingVariable;
-
-        Set<ThingProperty.Has> transformedProps = attributes.stream()
-                .map(this::transformAttributeProperty)
+        // we may have create a separate Variable per constraint, along with attribtue ownerships
+        // eg. $x has age 10;
+        // or. $x has age $y; $y < 10; $y > 5;
+        Set<ThingVariable.Attribute> transformedProps = attributes.stream()
+                .flatMap(this::transformAttributeProperty)
                 .collect(Collectors.toSet());
 
-        Set<BoundVariable<T>> transformedStatements = Sets.newHashSet(src);
+        Set<ThingVariable<?>> transformedStatements = Sets.newHashSet(src);
         transformedProps.stream()
                 .map(o -> {
-                    ArrayList<ThingProperty> properties = new ArrayList<>(src.asThing().properties());
+                    List<ThingProperty> properties = new ArrayList<>(src.asThing().properties());
                     properties.removeAll(attributes);
                     properties.addAll(transformedProps);
-                    T t = src.withoutProperties();
-                    return t.asThing().asSameThingWith(properties);
+                    // TODO: which is preferred style
+                    src.asUnbound().asThing().asSameThingWith(properties);
+                    return UnboundVariable.of(src.reference()).asThing().asSameThingWith(properties);
                 })
                 .forEach(transformedStatements::add);
 
@@ -79,16 +85,18 @@ public class GeneraliseAttributeOperator implements Operator{
     }
 
     private ThingProperty.Has transformAttributeProperty(ThingProperty.Has src){
-        LinkedHashSet<ThingProperty> properties = src.variable().properties().stream()
+        LinkedHashSet<ThingProperty> properties = src.attribute().properties().stream()
                 .filter(p -> !(p instanceof ThingProperty.Value))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
-        Optional<Range> range = src.variable().valueProperty().map(vp -> Ranges.create(vp));
+        Optional<Range> range = src.attribute().value().map(vp -> Ranges.create(vp));
         if (!range.isPresent()) return src;
 
-        properties.addAll(range.get().generalise().toProperties());
+        ThingProperty.Value newValue = range.get().generalise().toProperties().iterator().next();
 
-        String type = src.type();
-        return new ThingProperty.Has(type, Statement.create(attribute.var(), properties));
+        assert properties.size() == 1;
+
+        String type = src.type().label().get().toString();
+        return new ThingProperty.Has(type, properties;
     }
 
 }

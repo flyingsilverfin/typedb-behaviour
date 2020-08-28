@@ -18,11 +18,11 @@
 
 package grakn.verification.tools.operator.range;
 
-import graql.lang.property.ValueProperty;
+import graql.lang.pattern.property.ThingProperty;
 
 public class Ranges {
 
-    public static Range create(ValueProperty vp){
+    public static Range create(ThingProperty.Value vp){
         if(vp.operation().value() instanceof Number) {
             return NumberRange.create(vp.operation().comparator(), vp.operation().value());
         }

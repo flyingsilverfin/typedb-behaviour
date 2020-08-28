@@ -21,53 +21,46 @@ package grakn.verification.tools.operator;
 import com.google.common.collect.Sets;
 import graql.lang.Graql;
 import graql.lang.pattern.Conjunction;
-import graql.lang.property.IdProperty;
-import graql.lang.property.VarProperty;
-import graql.lang.statement.Statement;
-import graql.lang.statement.Variable;
-import java.util.LinkedHashSet;
+import graql.lang.pattern.property.ThingProperty;
+import graql.lang.pattern.variable.ThingVariable;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/*
+Fuzzes a single ID per to a more "general" / different (fake) ID per statement in the conjunction
+*/
 public class IdFuzzyingOperator implements Operator{
 
     @Override
-    public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
-        if (!src.statements().stream().flatMap(s -> s.getProperties(IdProperty.class)).findFirst().isPresent()){
+    public Stream<? extends Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
+        if (!src.variables().map(s -> s.asThing().iid()).findFirst().isPresent()){
             return Stream.of(src);
         }
 
-        List<Set<Statement>> transformedStatements = src.statements().stream()
+        List<Set<ThingVariable<?>>> transformedStatements = src.variables()
+                .filter(var -> var.isThing())
+                .map(var -> var.asThing())
                 .map(p -> transformStatement(p, ctx))
                 .collect(Collectors.toList());
         return Sets.cartesianProduct(transformedStatements).stream()
                 .map(Graql::and)
-                .filter(p -> !p.equals(src))
-                .map(p -> Graql.and(
-                        p.statements().stream()
-                                .filter(st -> !st.properties().isEmpty())
-                                .collect(Collectors.toSet())
-                        )
-                );
+                .filter(p -> !p.equals(src));
     }
 
-    private Set<Statement> transformStatement(Statement src, TypeContext ctx){
-        Variable var = src.var();
-        Set<IdProperty> ids = src.getProperties(IdProperty.class).collect(Collectors.toSet());
-        if (ids.isEmpty()) return Sets.newHashSet(src);
-
-        Set<Statement> transformedStatements = Sets.newHashSet(src);
-        ids.stream()
-                .map(idProp -> {
-                    LinkedHashSet<VarProperty> properties = new LinkedHashSet<>(src.properties());
-                    properties.remove(idProp);
-                    properties.add(new IdProperty(ctx.instanceId()));
-                    return Statement.create(var, properties);
-                })
-                .forEach(transformedStatements::add);
-
+    private Set<ThingVariable<?>> transformStatement(ThingVariable<?> src, TypeContext ctx){
+        Optional<ThingProperty.IID> ids = src.iid();
+        Set<ThingVariable<?>> transformedStatements = Sets.newHashSet(src);
+        ids.map(idProp -> {
+            List<ThingProperty> properties = new ArrayList<>(src.properties());
+            properties.remove(idProp);
+            properties.add(new ThingProperty.IID(ctx.instanceId()));
+            return src.asUnbound().asThing().asSameThingWith(properties);
+        });
         return transformedStatements;
     }
 }

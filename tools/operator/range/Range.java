@@ -18,7 +18,8 @@
 
 package grakn.verification.tools.operator.range;
 
-import graql.lang.property.ValueProperty;
+import graql.lang.pattern.property.ThingProperty;
+
 import java.util.Set;
 
 public interface Range<T> {
@@ -40,5 +41,5 @@ public interface Range<T> {
     /**
      * @return Set of ValueProperty that corresponds to this range.
      */
-    Set<ValueProperty> toProperties();
+    Set<ThingProperty.Value> toProperties();
 }

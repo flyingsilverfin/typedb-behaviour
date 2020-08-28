@@ -20,11 +20,16 @@ package grakn.verification.tools.operator.range;
 
 import com.google.common.collect.Sets;
 import graql.lang.Graql;
+import graql.lang.common.GraqlToken;
 import graql.lang.property.ValueProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
 import java.util.HashSet;
 import java.util.Set;
+
+import static graql.lang.common.GraqlToken.Comparator.EQV;
+import static graql.lang.common.GraqlToken.Comparator.GT;
+import static graql.lang.common.GraqlToken.Comparator.NEQV;
 
 public class NumberRange implements Range<Number>{
     private final Number lowerBound;
@@ -35,7 +40,7 @@ public class NumberRange implements Range<Number>{
         this.upperBound = high;
     }
 
-    public static Range create(Graql.Token.Comparator comp, Object val){
+    public static Range create(GraqlToken.Comparator comp, Object val){
         if (!(val instanceof Number)) return new NumberRange(null, null);
         Number value = (Number) val;
         switch(comp){
