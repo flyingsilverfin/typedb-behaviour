@@ -41,6 +41,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import graql.lang.pattern.property.Property;
+import graql.lang.pattern.property.ThingProperty;
 import org.junit.Test;
 
 import static graql.lang.Graql.and;
@@ -443,25 +446,25 @@ public class OperatorTest {
     }
 
     @Test
-    public void whenApplyingVariableFuzzyingOperator_atLeastOneIdIsFuzzed(){
-        List<String> inputIds = Lists.newArrayList("V123", "V456");
+    public void whenApplyingIdFuzzyingOperator_atLeastOneIdIsFuzzed(){
+        List<String> inputIds = Lists.newArrayList("0x123", "0x456");
         Conjunction<?> input = and(
                 var("x").iid(inputIds.get(0)),
                 var("y").iid(inputIds.get(1))
         );
         Set<Conjunction<?>> output = Operators.fuzzIds().apply(input, ctx).collect(toSet());
         Set<Conjunction<?>> output2 = output.stream().flatMap(p -> Operators.fuzzIds().apply(p, ctx)).collect(toSet());
-        /*
+
         Stream.concat(output.stream(), output2.stream()).forEach(o -> assertTrue(
                 o.variables()
                         .flatMap(s -> s.properties().stream())
-                        //.filter(p -> p instanceof IdProperty)
-                        //.map(IdProperty.class::cast)
-                        //.map(IdProperty::id)
+                        .filter(p -> p instanceof ThingProperty.IID)
+                        .map(ThingProperty.IID.class::cast)
+                        .map(ThingProperty.IID::iid)
                         .anyMatch(id -> !inputIds.contains(id))
         ));
 
-         */
+
         assertNotEquals(Sets.newHashSet(input), output);
         assertNotEquals(output, output2);
     }

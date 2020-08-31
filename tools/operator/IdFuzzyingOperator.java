@@ -32,10 +32,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/*
+/**
 Applies an ID fuzzying (randomising) operation consecutively to all ids present within a pattern to arrive at a set of
-patterns where each pattern has a single id fuzzed.
-*/
+patterns where each pattern has at least a single id fuzzed.
+**/
 public class IdFuzzyingOperator implements Operator{
 
     @Override
@@ -55,14 +55,15 @@ public class IdFuzzyingOperator implements Operator{
     }
 
     private Set<ThingVariable<?>> transformStatement(ThingVariable<?> src, TypeContext ctx){
-        Optional<ThingProperty.IID> ids = src.iid();
+        Optional<ThingProperty.IID> iid = src.iid();
         Set<ThingVariable<?>> transformedStatements = Sets.newHashSet(src);
-        ids.map(idProp -> {
+        iid.map(idProp -> {
             List<ThingProperty> properties = new ArrayList<>(src.properties());
             properties.remove(idProp);
             properties.add(new ThingProperty.IID(ctx.instanceId()));
             return src.asUnbound().asThing().asSameThingWith(properties);
-        });
+        }).ifPresent(transformedStatements::add);
+
         return transformedStatements;
     }
 }
