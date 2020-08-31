@@ -12,6 +12,7 @@ java_test(
         "@maven//:com_google_guava_guava",
         "//tools/operator:operator",
         "@graknlabs_graql//java:graql",
+        "@graknlabs_graql//java/pattern"
     ],
 )
 

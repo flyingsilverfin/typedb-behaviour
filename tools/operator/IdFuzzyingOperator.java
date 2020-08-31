@@ -23,6 +23,7 @@ import graql.lang.Graql;
 import graql.lang.pattern.Conjunction;
 import graql.lang.pattern.property.ThingProperty;
 import graql.lang.pattern.variable.ThingVariable;
+import graql.lang.pattern.variable.Variable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /*
-Fuzzes a single ID per to a more "general" / different (fake) ID per statement in the conjunction
+Applies an ID fuzzying (randomising) operation consecutively to all ids present within a pattern to arrive at a set of
+patterns where each pattern has a single id fuzzed.
 */
 public class IdFuzzyingOperator implements Operator{
 
@@ -43,8 +45,8 @@ public class IdFuzzyingOperator implements Operator{
         }
 
         List<Set<ThingVariable<?>>> transformedStatements = src.variables()
-                .filter(var -> var.isThing())
-                .map(var -> var.asThing())
+                .filter(Variable::isThing)
+                .map(Variable::asThing)
                 .map(p -> transformStatement(p, ctx))
                 .collect(Collectors.toList());
         return Sets.cartesianProduct(transformedStatements).stream()

@@ -20,10 +20,13 @@ package grakn.verification.tools.operator;
 
 import graql.lang.Graql;
 import graql.lang.pattern.Conjunction;
+/*
 import graql.lang.property.IsaProperty;
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
+ */
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -41,6 +44,8 @@ public class TypeGeneraliseOperator implements Operator {
 
     @Override
     public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
+        return null;
+        /*
         Set<Statement> originalStatements = src.statements();
         Set<Conjunction> transformedPatterns = new HashSet<>();
 
@@ -53,8 +58,10 @@ public class TypeGeneraliseOperator implements Operator {
         });
         return transformedPatterns.stream()
                 .filter(p -> !p.equals(src));
-    }
 
+         */
+    }
+/*
     private Statement transformStatement(Statement src, TypeContext ctx){
         Variable var = src.var();
         IsaProperty isaProperty = src.getProperty(IsaProperty.class).orElse(null);
@@ -78,4 +85,6 @@ public class TypeGeneraliseOperator implements Operator {
         }
         return newStatement;
     }
+
+ */
 }

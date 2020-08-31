@@ -21,10 +21,13 @@ package grakn.verification.tools.operator;
 import com.google.common.collect.Sets;
 import graql.lang.Graql;
 import graql.lang.pattern.Conjunction;
+/*
 import graql.lang.property.IdProperty;
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
+ */
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -57,8 +60,13 @@ import java.util.stream.Stream;
  */
 public class RemoveSubstitutionOperator implements Operator {
 
+
     @Override
     public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
+        return null;
+
+    //TODO
+    /*
         if (!src.statements().stream().flatMap(s -> s.getProperties(IdProperty.class)).findFirst().isPresent()){
             return Stream.of(src);
         }
@@ -75,9 +83,12 @@ public class RemoveSubstitutionOperator implements Operator {
                                 .collect(Collectors.toSet())
                         )
                 );
-    }
 
+                */
+    }
+/*
     private Set<Statement> transformStatement(Statement src){
+
         Variable var = src.var();
         Set<IdProperty> ids = src.getProperties(IdProperty.class).collect(Collectors.toSet());
         if (ids.isEmpty()) return Sets.newHashSet(src);
@@ -92,5 +103,9 @@ public class RemoveSubstitutionOperator implements Operator {
                 .forEach(transformedStatements::add);
 
         return transformedStatements;
+
+
     }
+
+ */
 }

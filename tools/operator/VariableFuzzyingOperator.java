@@ -21,9 +21,12 @@ package grakn.verification.tools.operator;
 import com.google.common.collect.ImmutableMap;
 import graql.lang.Graql;
 import graql.lang.pattern.Conjunction;
+/*
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
+ */
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -44,7 +47,9 @@ public class VariableFuzzyingOperator implements Operator{
 
     @Override
     public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
+        return null;
         //generate new variables and how they map to existing variables
+        /*
         Map<Variable, Variable> varTransforms = new HashMap<>();
         src.statements().stream().flatMap(s -> s.variables().stream())
                 .forEach(v -> {
@@ -60,8 +65,10 @@ public class VariableFuzzyingOperator implements Operator{
                         .collect(Collectors.toList()))
                 .map(Graql::and);
 
-    }
+         */
 
+    }
+/*
     private Statement transformStatement(Statement src, Map<Variable, Variable> vars){
         LinkedHashSet<VarProperty> transformedProperties = src.properties().stream()
                 .map(p -> PropertyVariableTransform.transform(p, vars))
@@ -69,4 +76,6 @@ public class VariableFuzzyingOperator implements Operator{
         Variable statementVar = vars.containsKey(src.var()) ? vars.get(src.var()) : src.var();
         return Statement.create(statementVar, transformedProperties);
     }
+
+ */
 }

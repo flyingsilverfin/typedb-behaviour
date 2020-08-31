@@ -65,16 +65,20 @@ public class GeneraliseAttributeOperator implements Operator{
         // we may have create a separate Variable per constraint, along with attribtue ownerships
         // eg. $x has age 10;
         // or. $x has age $y; $y < 10; $y > 5;
-        Set<ThingVariable.Attribute> transformedProps = attributes.stream()
+        Set<ThingVariable.Attribute> transformedProps = null;
+                /*
+                attributes.stream()
                 .flatMap(this::transformAttributeProperty)
                 .collect(Collectors.toSet());
+
+                 */
 
         Set<ThingVariable<?>> transformedStatements = Sets.newHashSet(src);
         transformedProps.stream()
                 .map(o -> {
                     List<ThingProperty> properties = new ArrayList<>(src.asThing().properties());
                     properties.removeAll(attributes);
-                    properties.addAll(transformedProps);
+                    //properties.addAll(transformedProps);
                     // TODO: which is preferred style
                     src.asUnbound().asThing().asSameThingWith(properties);
                     return UnboundVariable.of(src.reference()).asThing().asSameThingWith(properties);
@@ -91,12 +95,14 @@ public class GeneraliseAttributeOperator implements Operator{
         Optional<Range> range = src.attribute().value().map(vp -> Ranges.create(vp));
         if (!range.isPresent()) return src;
 
-        ThingProperty.Value newValue = range.get().generalise().toProperties().iterator().next();
+        //TODO
+        // ThingProperty.Value newValue = range.get().generalise().toProperties().iterator().next();
 
         assert properties.size() == 1;
 
         String type = src.type().label().get().toString();
-        return new ThingProperty.Has(type, properties;
+        //return new ThingProperty.Has(type, properties);
+        return null;
     }
 
 }

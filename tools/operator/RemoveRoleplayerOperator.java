@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static grakn.verification.tools.operator.Utils.sanitise;
+//import static grakn.verification.tools.operator.Utils.sanitise;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -58,10 +58,16 @@ public class RemoveRoleplayerOperator implements Operator {
                 .filter(var -> var.asThing().relation().isPresent())
                 .map(var -> transformStatement(var.asThing()))
                 .collect(Collectors.toList());
+
+        //TODO
+        return null;
+        /*
         return Sets.cartesianProduct(transformedStatements).stream()
                 .map(Graql::and)
                 .filter(p -> !p.equals(src))
                 .map(p -> sanitise(p, src));
+
+         */
     }
 
     private Set<ThingVariable<?>> transformStatement(ThingVariable<?> src) {
@@ -90,9 +96,14 @@ public class RemoveRoleplayerOperator implements Operator {
             rPconfigurations.add(rps);
         });
 
+        //TODO
+        return null;
+        /*
         return Sets.cartesianProduct(rPconfigurations).stream()
                 .map(rpSet -> rpSet.stream().map(o -> o.orElse(null)).filter(Objects::nonNull).collect(toSet()))
                 .map(rpSet -> Optional.ofNullable(Utils.relationProperty(rpSet)))
                 .collect(toSet());
+
+         */
     }
 }

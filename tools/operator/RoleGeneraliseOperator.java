@@ -21,10 +21,13 @@ package grakn.verification.tools.operator;
 import com.google.common.collect.Sets;
 import graql.lang.Graql;
 import graql.lang.pattern.Conjunction;
+/*
 import graql.lang.property.RelationProperty;
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
+ */
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -33,7 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static grakn.verification.tools.operator.Utils.sanitise;
+//import static grakn.verification.tools.operator.Utils.sanitise;
 
 /**
  * Generates a set of generalised patterns by removing generalising roles within relations.
@@ -45,6 +48,8 @@ public class RoleGeneraliseOperator implements Operator {
 
     @Override
     public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
+        return null;
+        /*
         //transform each statement into a set of its possible generalisations
         List<Set<Statement>> transformedStatements = src.statements().stream()
                 .map(s -> transformStatement(s, ctx))
@@ -55,6 +60,8 @@ public class RoleGeneraliseOperator implements Operator {
                 .map(Graql::and)
                 .map(p -> sanitise(p, src))
                 .filter(p -> !p.statements().isEmpty());
+
+         */
     }
 
     /**
@@ -63,6 +70,7 @@ public class RoleGeneraliseOperator implements Operator {
      * @param ctx
      * @return
      */
+    /*
     private Set<Statement> transformStatement(Statement src, TypeContext ctx){
         Variable var = src.var();
         RelationProperty relProperty = src.getProperty(RelationProperty.class).orElse(null);
@@ -79,9 +87,12 @@ public class RoleGeneraliseOperator implements Operator {
                 }).collect(Collectors.toSet());
     }
 
+     */
+
     /**
      * transform: single rel prop -> multiple rel prop each with one RP generalised
      **/
+    /*
     private Set<RelationProperty> transformRelationProperty(RelationProperty prop, TypeContext ctx){
         List<RelationProperty.RolePlayer> originalRPs = prop.relationPlayers();
         Set<RelationProperty> transformedProperties = new HashSet<>();
@@ -111,6 +122,6 @@ public class RoleGeneraliseOperator implements Operator {
         String superType = ctx.sup(type);
         return new RelationProperty.RolePlayer(Graql.var().type(superType), player);
     }
-
+*/
 
 }

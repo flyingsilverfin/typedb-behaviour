@@ -27,10 +27,13 @@ import graql.lang.pattern.variable.ThingVariable;
 import graql.lang.pattern.variable.TypeVariable;
 import graql.lang.pattern.variable.UnboundVariable;
 import graql.lang.pattern.variable.Variable;
+/*
 import graql.lang.property.RelationProperty;
 import graql.lang.statement.Statement;
 
 import graql.lang.statement.Variable;
+
+ */
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -47,6 +50,7 @@ public class Utils {
      * @param src original Pattern
      * @return
      */
+    /*
     static Conjunction<?> sanitise(Conjunction<?> p, Conjunction<?> src){
         Set<ThingVariable<?>> toRemove = Sets.difference(rolePlayerVariables(src), rolePlayerVariables(p));
         return Graql.and(
@@ -82,4 +86,6 @@ public class Utils {
         }
         return var.relation().orElse(null);
     }
+
+     */
 }

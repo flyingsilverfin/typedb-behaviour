@@ -20,6 +20,7 @@ package grakn.verification.tools.operator;
 
 import com.google.common.collect.ImmutableMap;
 import graql.lang.Graql;
+/*
 import graql.lang.property.HasAttributeProperty;
 import graql.lang.property.IsaProperty;
 import graql.lang.property.NeqProperty;
@@ -28,6 +29,8 @@ import graql.lang.property.ValueProperty;
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
+ */
 
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +41,7 @@ import java.util.stream.Collectors;
  * Introduces a variable transform for different types of VarProperty. The variables are transformed according to provided mappings.
  */
 public class PropertyVariableTransform {
-
+/*
     private final static Map<Class, BiFunction<VarProperty, Map<Variable, Variable>, VarProperty>> transformMap = ImmutableMap.of(
             RelationProperty.class, PropertyVariableTransform::transformRelation,
             HasAttributeProperty.class, PropertyVariableTransform::transformAttribute,
@@ -120,4 +123,6 @@ public class PropertyVariableTransform {
         Variable var = neqProp.statement().var();
         return new NeqProperty(Graql.var(vars.getOrDefault(var, var)));
     }
+
+ */
 }

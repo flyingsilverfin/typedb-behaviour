@@ -20,16 +20,20 @@ package grakn.verification.tools.operator.range;
 
 import com.google.common.collect.Sets;
 import graql.lang.Graql;
-import graql.lang.common.GraqlToken;
+//import graql.lang.common.GraqlToken;
+import graql.lang.pattern.property.ThingProperty;
+/*
 import graql.lang.property.ValueProperty;
 import graql.lang.statement.Statement;
 import graql.lang.statement.Variable;
+
+ */
 import java.util.HashSet;
 import java.util.Set;
 
-import static graql.lang.common.GraqlToken.Comparator.EQV;
-import static graql.lang.common.GraqlToken.Comparator.GT;
-import static graql.lang.common.GraqlToken.Comparator.NEQV;
+//import static graql.lang.common.GraqlToken.Comparator.EQV;
+//import static graql.lang.common.GraqlToken.Comparator.GT;
+//import static graql.lang.common.GraqlToken.Comparator.NEQV;
 
 public class NumberRange implements Range<Number>{
     private final Number lowerBound;
@@ -40,6 +44,7 @@ public class NumberRange implements Range<Number>{
         this.upperBound = high;
     }
 
+    /*
     public static Range create(GraqlToken.Comparator comp, Object val){
         if (!(val instanceof Number)) return new NumberRange(null, null);
         Number value = (Number) val;
@@ -55,6 +60,8 @@ public class NumberRange implements Range<Number>{
         }
     }
 
+
+     */
     @Override
     public String toString(){
         return "[" + (lowerBound() != null? lowerBound : "-INF") + ", " + (upperBound() != null? upperBound : "INF") +"]";
@@ -97,8 +104,11 @@ public class NumberRange implements Range<Number>{
         return new NumberRange(low, high);
     }
 
+
     @Override
-    public Set<ValueProperty> toProperties(){
+    public Set<ThingProperty.Value> toProperties(){
+        return null;
+        /*
         if (lowerBound() == null && upperBound() == null){
             Statement newStatement = Graql.var(new Variable().asReturnedVar());
             ValueProperty.Operation.Comparison.Variable operation = new ValueProperty.Operation.Comparison.Variable(Graql.Token.Comparator.EQV, newStatement);
@@ -119,6 +129,8 @@ public class NumberRange implements Range<Number>{
             vps.add(new ValueProperty<>(comparison));
         }
         return vps;
+
+         */
     }
 
 }
