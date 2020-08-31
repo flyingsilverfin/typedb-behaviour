@@ -416,11 +416,11 @@ public class OperatorTest {
                         .rel("subRole", var("y"))
                         .rel("subRole", var("z")),
                 var("x").isa("subEntity"),
-                var("x").iid("0x123"),
+                var("x").iid("0xV123"),
                 var("y").isa("subEntity"),
-                var("y").iid("0x456"),
+                var("y").iid("0xV456"),
                 var("z").isa("subEntity"),
-                var("z").iid("0x789")
+                var("z").iid("0xV789")
         );
         Set<Conjunction<?>> outputs = Operators.fuzzVariables().apply(input, ctx).collect(toSet());
         assertEquals(input.variables().count(), outputs.size());

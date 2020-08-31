@@ -44,7 +44,7 @@ public class MockTypeContext implements TypeContext {
             .add("entity").add("relation")
             .build();
 
-    private final List<String> ids = Lists.newArrayList("0x123", "0x456", "0x789");
+    private final List<String> ids = Lists.newArrayList("0xa", "0xb", "0xc");
 
     @Override
     public boolean isMetaType(String label) {
