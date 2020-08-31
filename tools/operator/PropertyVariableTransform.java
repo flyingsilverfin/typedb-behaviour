@@ -19,7 +19,16 @@
 package grakn.verification.tools.operator;
 
 import com.google.common.collect.ImmutableMap;
+import grakn.common.collection.Either;
 import graql.lang.Graql;
+import graql.lang.common.GraqlToken;
+import graql.lang.pattern.property.ThingProperty;
+import graql.lang.pattern.property.TypeProperty;
+import graql.lang.pattern.property.ValueOperation;
+import graql.lang.pattern.variable.ThingVariable;
+import graql.lang.pattern.variable.TypeVariable;
+import graql.lang.pattern.variable.UnboundVariable;
+import graql.lang.pattern.variable.Variable;
 /*
 import graql.lang.property.HasAttributeProperty;
 import graql.lang.property.IsaProperty;
@@ -32,6 +41,7 @@ import graql.lang.statement.Variable;
 
  */
 
+import java.beans.Statement;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -41,88 +51,85 @@ import java.util.stream.Collectors;
  * Introduces a variable transform for different types of VarProperty. The variables are transformed according to provided mappings.
  */
 public class PropertyVariableTransform {
-/*
-    private final static Map<Class, BiFunction<VarProperty, Map<Variable, Variable>, VarProperty>> transformMap = ImmutableMap.of(
-            RelationProperty.class, PropertyVariableTransform::transformRelation,
-            HasAttributeProperty.class, PropertyVariableTransform::transformAttribute,
-            IsaProperty.class, PropertyVariableTransform::transformIsa,
-            ValueProperty.class, PropertyVariableTransform::transformValue,
-            NeqProperty.class, PropertyVariableTransform::transformNeq
+
+    private final static Map<Class, BiFunction<ThingProperty, Map<Variable, Variable>, ThingProperty>> transformMap = ImmutableMap.of(
+            ThingProperty.Relation.class, PropertyVariableTransform::transformRelation,
+            ThingProperty.Has.class, PropertyVariableTransform::transformAttribute,
+            ThingProperty.Isa.class, PropertyVariableTransform::transformIsa,
+            ThingProperty.Value.class, PropertyVariableTransform::transformValue,
+            ThingProperty.NEQ.class, PropertyVariableTransform::transformNeq
     );
 
-    static VarProperty transform(VarProperty prop, Map<Variable, Variable> vars){
-        BiFunction<VarProperty, Map<Variable, Variable>, VarProperty> func = transformMap.get(prop.getClass());
+    static ThingProperty transform(ThingProperty prop, Map<Variable, Variable> vars){
+        BiFunction<ThingProperty, Map<Variable, Variable>, ThingProperty> func = transformMap.get(prop.getClass());
         if (func == null) return defaultTransform(prop, vars);
         return func.apply(prop, vars);
     }
 
-    static private VarProperty defaultTransform(VarProperty prop, Map<Variable, Variable> vars){
+    static private ThingProperty defaultTransform(ThingProperty prop, Map<Variable, Variable> vars){
         return prop;
     }
 
-    static private VarProperty transformRelation(VarProperty prop, Map<Variable, Variable> vars){
-        RelationProperty relProp = (RelationProperty) prop;
-
-        Set<RelationProperty.RolePlayer> transformedRPs = relProp.relationPlayers().stream().map(rp -> {
-            Statement player = rp.getPlayer();
-            Variable playerVar = player.var();
-            Statement role = rp.getRole().orElse(null);
-            Statement transformedRole = role;
+    static private ThingProperty transformRelation(ThingProperty prop, Map<Variable, Variable> vars){
+        ThingProperty.Relation relProp = (ThingProperty.Relation) prop;
+        ThingProperty.Relation relation = relProp.asRelation();
+        Set<ThingProperty.Relation.RolePlayer> transformedRPs = relation.players().stream().map(rp -> {
+            ThingVariable playerVar = rp.player();
+            TypeVariable role = rp.roleType().orElse(null);
+            TypeProperty.Label typeLabel = null;
+            TypeVariable transformedRole = role;
             if (role != null) {
-                String type = role.getType().orElse(null);
-                Variable newRoleVar = vars.get(role.var());
+                typeLabel = role.label().orElse(null);
+                TypeVariable newRoleVar = vars.getOrDefault(role, role).asType();
                 if (newRoleVar != null) {
-                    transformedRole = Graql.var(newRoleVar);
-                    if (type != null) transformedRole = transformedRole.type(type);
+                    transformedRole = newRoleVar;
+                    if (typeLabel != null) transformedRole = transformedRole.type(typeLabel.label());
                 }
             }
 
-            Variable newPlayerVar = vars.getOrDefault(playerVar, playerVar);
-            Statement transformedPlayer = Graql.var(newPlayerVar);
-            return new RelationProperty.RolePlayer(transformedRole, transformedPlayer);
+            UnboundVariable transformedPlayer = Graql.var(vars.getOrDefault(playerVar, playerVar).name());
+            return typeLabel != null?
+                    new ThingProperty.Relation.RolePlayer(typeLabel.label(), transformedPlayer) :
+                    new ThingProperty.Relation.RolePlayer(transformedRole.asUnbound(), transformedPlayer);
         }).collect(Collectors.toSet());
         return Utils.relationProperty(transformedRPs);
     }
 
-    static private VarProperty transformAttribute(VarProperty prop, Map<Variable, Variable> vars){
-        HasAttributeProperty attrProp = (HasAttributeProperty) prop;
-        Statement attribute = attrProp.attribute();
-        Variable attrVar = attribute.var();
-        if (!attrVar.isReturned()) return prop;
-        String type = attribute.getProperty(IsaProperty.class).orElse(null)
-                .type().getType().orElse(null);
+    static private ThingProperty transformAttribute(ThingProperty prop, Map<Variable, Variable> vars){
+        ThingProperty.Has attrProp = (ThingProperty.Has) prop;
+        ThingVariable<?> attrVar = attrProp.attribute();
+        if (!attrVar.isNamed()) return prop;
 
-        Variable newAttrVar = vars.getOrDefault(attrVar, attrVar);
-        Statement isaStatement = Graql.var(newAttrVar).isa(type);
-        return new HasAttributeProperty(type, isaStatement);
+        TypeProperty.Label typeLabel = attrProp.type().label().orElse(null);
+        UnboundVariable newAttrVar = vars.getOrDefault(attrVar, attrVar).asThing().asUnbound();
+
+        return new ThingProperty.Has(typeLabel.label(), newAttrVar);
     }
 
-    static private VarProperty transformIsa(VarProperty prop, Map<Variable, Variable> vars){
-        IsaProperty isaProp = (IsaProperty) prop;
-        Statement type = isaProp.type();
-        Variable typeVar = type.var();
-        if (!typeVar.isReturned()) return prop;
+    static private ThingProperty transformIsa(ThingProperty prop, Map<Variable, Variable> vars){
+        ThingProperty.Isa isaProp = (ThingProperty.Isa) prop;
+        TypeVariable typeVar = isaProp.type();
+        if (!typeVar.isNamed()) return prop;
 
-        Statement newStatement = Graql.var(vars.getOrDefault(typeVar, typeVar));
-        return new IsaProperty(newStatement);
+        UnboundVariable newStatement = vars.getOrDefault(typeVar, typeVar).asType().asUnbound();
+        //TODO forcing it to not being explicit
+        return new ThingProperty.Isa(newStatement, false);
     }
 
-    static private VarProperty transformValue(VarProperty prop, Map<Variable, Variable> vars){
-        ValueProperty valProp = (ValueProperty) prop;
-        Statement inner = valProp.operation().innerStatement();
+    static private ThingProperty transformValue(ThingProperty prop, Map<Variable, Variable> vars){
+        ThingProperty.Value<?> valProp = (ThingProperty.Value<?>) prop;
+        ThingVariable<?> opVar = valProp.operation().variable();
         if(!valProp.operation().hasVariable()) return prop;
 
-        Variable innerVar = inner.var();
-        Statement varStatement = Graql.var(vars.getOrDefault(innerVar, innerVar));
-        ValueProperty.Operation.Comparison.Variable operation = new ValueProperty.Operation.Comparison.Variable(Graql.Token.Comparator.NEQV, varStatement);
-        return new ValueProperty<>(operation);
+        UnboundVariable varStatement = vars.getOrDefault(opVar, opVar).asThing().asUnbound();
+        ValueOperation.Comparison.Variable operation = new ValueOperation.Comparison.Variable(GraqlToken.Comparator.NEQV, varStatement);
+        return new ThingProperty.Value<>(operation);
     }
 
-    static private VarProperty transformNeq(VarProperty prop, Map<Variable, Variable> vars){
-        NeqProperty neqProp = (NeqProperty) prop;
-        Variable var = neqProp.statement().var();
-        return new NeqProperty(Graql.var(vars.getOrDefault(var, var)));
+    static private ThingProperty transformNeq(ThingProperty prop, Map<Variable, Variable> vars){
+        ThingProperty.NEQ neqProp = (ThingProperty.NEQ) prop;
+        Variable var = neqProp.variable();
+        return new ThingProperty.NEQ(Graql.var(vars.getOrDefault(var, var).name()));
     }
 
- */
 }

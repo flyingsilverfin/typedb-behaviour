@@ -33,9 +33,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
-Applies an ID fuzzying (randomising) operation consecutively to all ids present within a pattern to arrive at a set of
-patterns where each pattern has at least a single id fuzzed.
-**/
+ * Introduces the id fuzzying operator - it fuzzes each id in the input pattern such that
+ * the input and output patterns are structurally-equivalent (equivalent up to the choice of ids).
+ *
+ * For an input pattern the application of the operator returns an exhaustive stream of patterns each with at least a single id randomised.
+ *
+ */
 public class IdFuzzyingOperator implements Operator{
 
     @Override

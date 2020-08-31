@@ -69,7 +69,7 @@ public class Utils {
                 .map(rp -> rp.getPlayer().var())
                 .collect(Collectors.toSet());
     }
-
+*/
     static ThingProperty.Relation relationProperty(Collection<ThingProperty.Relation.RolePlayer> relationPlayers) {
         if (relationPlayers.isEmpty()) return null;
         ThingVariable.Relation var = null;
@@ -86,6 +86,4 @@ public class Utils {
         }
         return var.relation().orElse(null);
     }
-
-     */
 }

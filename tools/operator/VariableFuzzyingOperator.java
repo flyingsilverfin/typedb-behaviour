@@ -21,6 +21,12 @@ package grakn.verification.tools.operator;
 import com.google.common.collect.ImmutableMap;
 import graql.lang.Graql;
 import graql.lang.pattern.Conjunction;
+import graql.lang.pattern.property.Property;
+import graql.lang.pattern.property.ThingProperty;
+import graql.lang.pattern.variable.BoundVariable;
+import graql.lang.pattern.variable.ThingVariable;
+import graql.lang.pattern.variable.UnboundVariable;
+import graql.lang.pattern.variable.Variable;
 /*
 import graql.lang.property.VarProperty;
 import graql.lang.statement.Statement;
@@ -28,9 +34,13 @@ import graql.lang.statement.Variable;
 
  */
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -43,39 +53,32 @@ import java.util.stream.Stream;
  */
 public class VariableFuzzyingOperator implements Operator{
 
-    private final static int varLength = 3;
-
     @Override
     public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
-        return null;
         //generate new variables and how they map to existing variables
-        /*
         Map<Variable, Variable> varTransforms = new HashMap<>();
-        src.statements().stream().flatMap(s -> s.variables().stream())
+        src.variables()
                 .forEach(v -> {
-                    String newVarVal = Graql.var().var().name();
-                    Variable newVar = Graql.var(newVarVal.substring(newVarVal.length() - varLength)).var();
-                    if (v.isReturned()) newVar = newVar.asReturnedVar();
+                    String newVarName = UUID.randomUUID().toString();
+                    Variable newVar = Graql.var(newVarName);
                     varTransforms.put(v, newVar);
                 });
 
         return varTransforms.entrySet().stream()
-                .map(e -> src.statements().stream()
-                        .map(s -> transformStatement(s, ImmutableMap.of(e.getKey(), e.getValue())))
+                .map(e -> src.variables()
+                        .map(v -> transformStatement(v, ImmutableMap.of(e.getKey(), e.getValue())))
                         .collect(Collectors.toList()))
                 .map(Graql::and);
-
-         */
-
     }
-/*
-    private Statement transformStatement(Statement src, Map<Variable, Variable> vars){
-        LinkedHashSet<VarProperty> transformedProperties = src.properties().stream()
+
+    private BoundVariable transformStatement(Variable<?> src, Map<Variable, Variable> vars){
+        if (src.isType()) return src.asType();
+        List<ThingProperty> transformedProperties = src.asThing().properties().stream()
                 .map(p -> PropertyVariableTransform.transform(p, vars))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        Variable statementVar = vars.containsKey(src.var()) ? vars.get(src.var()) : src.var();
-        return Statement.create(statementVar, transformedProperties);
+                .distinct()
+                .collect(Collectors.toList());
+        ThingVariable statementVar = vars.getOrDefault(src, src).asThing();
+        //make sure to create a fresh variable instead of mutating the old one
+        return statementVar.asUnbound().asThing().asSameThingWith(transformedProperties);
     }
-
- */
 }

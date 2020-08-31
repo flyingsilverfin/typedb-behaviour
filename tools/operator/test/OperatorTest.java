@@ -416,11 +416,11 @@ public class OperatorTest {
                         .rel("subRole", var("y"))
                         .rel("subRole", var("z")),
                 var("x").isa("subEntity"),
-                var("x").iid("0xV123"),
+                var("x").iid("0x123"),
                 var("y").isa("subEntity"),
-                var("y").iid("0xV456"),
+                var("y").iid("0x456"),
                 var("z").isa("subEntity"),
-                var("z").iid("0xV789")
+                var("z").iid("0x789")
         );
         Set<Conjunction<?>> outputs = Operators.fuzzVariables().apply(input, ctx).collect(toSet());
         assertEquals(input.variables().count(), outputs.size());
@@ -433,14 +433,14 @@ public class OperatorTest {
     @Test
     public void whenApplyingVariableFuzzyingOperatorToPatternWithBinaryProperties_weFuzzAllVariables(){
         Conjunction<?> input = and(
-                var("r").has("someAttribute", Graql.var("v")),
-                var("r").isa(Graql.var("type")),
-                Graql.var("v").neq(Graql.var("v2")),
-                Graql.var("type").not(Graql.var("type2"))
+                var("r").has("someAttribute", var("v")),
+                var("r").isa(var("type")),
+                var("v").neq(var("v2")),
+                var("type").not(var("type2"))
         );
         Set<Conjunction<?>> outputs = Operators.fuzzVariables().apply(input, ctx).collect(toSet());
         outputs.forEach(output -> {
-            assertNotEquals(input, output);
+            assertNotEquals(Sets.newHashSet(input), output);
             assertFalse(Sets.difference(input.variables().collect(toSet()), output.variables().collect(toSet())).isEmpty());
         });
     }
