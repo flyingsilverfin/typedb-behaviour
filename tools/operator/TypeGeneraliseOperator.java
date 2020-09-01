@@ -46,17 +46,22 @@ public class TypeGeneraliseOperator implements Operator {
 
     @Override
     public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
-        Set<BoundVariable<?>> originalStatements = src.variables()
-                .filter(Variable::isNamed)
-                .collect(Collectors.toSet());
+        List<BoundVariable> originalStatements = src.patterns().stream()
+                .filter(BoundVariable.class::isInstance)
+                .map(BoundVariable.class::cast)
+                .distinct()
+                .collect(Collectors.toList());
+
+        //BoundVariable.asGraph()
         Set<Conjunction<?>> transformedPatterns = new HashSet<>();
 
         originalStatements.forEach(s -> {
-            BoundVariable<?> transformed = transformStatement(s, ctx);
-            Set<BoundVariable<?>> statements = new HashSet<>(originalStatements);
-            statements.remove(s);
-            if (transformed != null) statements.add(transformed);
-            if (!statements.isEmpty()) transformedPatterns.add(Graql.and(new ArrayList<>(statements)));
+            BoundVariable transformed = transformStatement(s, ctx);
+            List<BoundVariable> statements = new ArrayList<>(originalStatements);
+            if (transformed != null){
+                statements.set(statements.indexOf(s), transformed);
+            }
+            if (!statements.isEmpty()) transformedPatterns.add(Graql.and(statements));
         });
         return transformedPatterns.stream()
                 .filter(p -> !p.equals(src));
@@ -97,17 +102,17 @@ public class TypeGeneraliseOperator implements Operator {
         List<ThingProperty> properties = new ArrayList<>(src.properties());
         properties.remove(isaProperty);
 
-        ThingVariable<?> newStatement = var.asThing().asSameThingWith(properties);
+        ThingVariable<?> newStatement = src.relation().isPresent()?
+                var.asRelationWith(Utils.getProperty(src, ThingProperty.Relation.class)) :
+                var.asThing();
 
         if(ctx.isMetaType(typeLabel)){
-            ThingProperty.Isa newIsa = new ThingProperty.Isa(Graql.var(var.name() + TYPE_POSTFIX), false);
-            newStatement = newStatement.asSameThingWith(newIsa);
+            properties.add(new ThingProperty.Isa(Graql.var(var.name() + TYPE_POSTFIX), false));
         } else {
             String superType = ctx.sup(typeLabel);
-            ThingProperty.Isa newIsa = new ThingProperty.Isa(superType, false);
-            newStatement = newStatement.asSameThingWith(newIsa);;
+            properties.add(new ThingProperty.Isa(superType, false));
         }
-        return newStatement;
+        return newStatement.asSameThingWith(properties);
     }
 
 }
