@@ -56,7 +56,7 @@ public class PropertyVariableTransform {
     }
 
     static private ThingProperty transformRelation(ThingProperty prop, Map<UnboundVariable, UnboundVariable> vars){
-        ThingProperty.Relation relProp = (ThingProperty.Relation) prop;
+        ThingProperty.Relation relProp = prop.asRelation();
         ThingProperty.Relation relation = relProp.asRelation();
         Set<ThingProperty.Relation.RolePlayer> transformedRPs = relation.players().stream().map(rp -> {
             UnboundVariable playerVar = rp.player().asUnbound();
@@ -79,7 +79,7 @@ public class PropertyVariableTransform {
     }
 
     static private ThingProperty transformAttribute(ThingProperty prop, Map<UnboundVariable, UnboundVariable> vars){
-        ThingProperty.Has attrProp = (ThingProperty.Has) prop;
+        ThingProperty.Has attrProp = prop.asHas();
         UnboundVariable attrVar = attrProp.attribute().asUnbound();
         if (!attrVar.isNamed()) return prop;
 
@@ -90,7 +90,7 @@ public class PropertyVariableTransform {
     }
 
     static private ThingProperty transformIsa(ThingProperty prop, Map<UnboundVariable, UnboundVariable> vars){
-        ThingProperty.Isa isaProp = (ThingProperty.Isa) prop;
+        ThingProperty.Isa isaProp = prop.asIsa();
         UnboundVariable typeVar = isaProp.type().asUnbound();
         if (!typeVar.isNamed()) return prop;
 
@@ -100,7 +100,7 @@ public class PropertyVariableTransform {
     }
 
     static private ThingProperty transformValue(ThingProperty prop, Map<UnboundVariable, UnboundVariable> vars){
-        ThingProperty.Value<?> valProp = (ThingProperty.Value<?>) prop;
+        ThingProperty.Value<?> valProp = prop.asValue();
         UnboundVariable opVar = valProp.operation().variable().asUnbound();
         if(!valProp.operation().hasVariable()) return prop;
 
@@ -110,7 +110,7 @@ public class PropertyVariableTransform {
     }
 
     static private ThingProperty transformNeq(ThingProperty prop, Map<UnboundVariable, UnboundVariable> vars){
-        ThingProperty.NEQ neqProp = (ThingProperty.NEQ) prop;
+        ThingProperty.NEQ neqProp = prop.asNEQ();
         UnboundVariable var = neqProp.variable().asUnbound();
         return new ThingProperty.NEQ(Graql.var(vars.getOrDefault(var, var).name()));
     }

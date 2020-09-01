@@ -89,7 +89,7 @@ public class TypeGeneraliseOperator implements Operator {
 
     private BoundVariable<?> transformThingStatement(ThingVariable<?> src, TypeContext ctx){
         UnboundVariable var = src.asUnbound();
-        ThingProperty.Isa isaProperty = Utils.getProperty(src, ThingProperty.Isa.class);
+        ThingProperty.Isa isaProperty = src.isa().orElse(null);
         if (isaProperty == null) return src;
 
         TypeProperty.Label type = isaProperty.type().label().orElse(null);
@@ -103,7 +103,7 @@ public class TypeGeneraliseOperator implements Operator {
         properties.remove(isaProperty);
 
         ThingVariable<?> newStatement = src.relation().isPresent()?
-                var.asRelationWith(Utils.getProperty(src, ThingProperty.Relation.class)) :
+                var.asRelationWith(src.relation().orElse(null)) :
                 var.asThing();
 
         if(ctx.isMetaType(typeLabel)){
