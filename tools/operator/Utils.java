@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import graql.lang.Graql;
 import graql.lang.pattern.Conjunction;
 import graql.lang.pattern.Pattern;
+import graql.lang.pattern.property.Property;
 import graql.lang.pattern.property.ThingProperty;
 import graql.lang.pattern.variable.ThingVariable;
 import graql.lang.pattern.variable.TypeVariable;
@@ -85,5 +86,12 @@ public class Utils {
             }
         }
         return var.relation().orElse(null);
+    }
+
+    static <T extends Property> T getProperty(Variable<?> src, Class<T> type){
+        return src.properties().stream()
+                .filter(type::isInstance)
+                .map(type::cast)
+                .findFirst().orElse(null);
     }
 }

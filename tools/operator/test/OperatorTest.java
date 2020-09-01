@@ -21,33 +21,19 @@ package grakn.verification.tools.operator.test;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import grakn.verification.tools.operator.Operator;
 import grakn.verification.tools.operator.Operators;
 import grakn.verification.tools.operator.TypeContext;
-import graql.lang.Graql;
 import graql.lang.pattern.Conjunction;
-/*
-import graql.lang.pattern.Pattern;
-
-import graql.lang.property.IdProperty;
-import graql.lang.property.IsaProperty;
-import graql.lang.property.NeqProperty;
-import graql.lang.property.ValueProperty;
-import graql.lang.property.VarProperty;
-import graql.lang.statement.Variable;
- */
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import graql.lang.pattern.Pattern;
 import graql.lang.pattern.property.Property;
 import graql.lang.pattern.property.ThingProperty;
 import graql.lang.pattern.variable.BoundVariable;
 import graql.lang.pattern.variable.Variable;
 import org.junit.Test;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static graql.lang.Graql.and;
 import static graql.lang.Graql.var;
@@ -61,31 +47,31 @@ public class OperatorTest {
 
     private static TypeContext ctx = new MockTypeContext();
 
-    /*
+
     @Test
     public void computeIdentity(){
-        Pattern input = and(var().isa("thing"));
+        Conjunction<?> input = and(var().isa("thing"));
         assertEquals(input, Operators.identity().apply(input,null).iterator().next());
     }
 
     @Test
     public void whenGeneraliseTypeOfASingleStatement_weDecrementTheLabel(){
-        Pattern input = and(var("x").isa("subEntity"));
-        Pattern expectedOutput = and(var("x").isa("baseEntity"));
+        Conjunction<?> input = and(var("x").isa("subEntity"));
+        Conjunction<?> expectedOutput = and(var("x").isa("baseEntity"));
 
-        Pattern output = Iterables.getOnlyElement(
+        Conjunction<?> output = Iterables.getOnlyElement(
                 Operators.typeGeneralise().apply(input, ctx).collect(Collectors.toSet())
                 );
         assertEquals(expectedOutput, output);
 
-        Pattern secondOutput = Iterables.getOnlyElement(
+        Conjunction<?> secondOutput = Iterables.getOnlyElement(
                 Operators.typeGeneralise().apply(output, ctx).collect(Collectors.toSet())
         );
         assertEquals(
                 and(var("x").isa("entity")),
                 secondOutput);
 
-        Pattern thirdOutput = Iterables.getOnlyElement(
+        Conjunction<?> thirdOutput = Iterables.getOnlyElement(
                 Operators.typeGeneralise().apply(secondOutput, ctx).collect(Collectors.toSet())
         );
         assertEquals(
@@ -96,12 +82,12 @@ public class OperatorTest {
 
     @Test
     public void whenApplyingGeneraliseTypeOperator_weDecrementLabelsOneByOne(){
-        Pattern input = and(
+        Conjunction<?> input = and(
                 var("r").rel(var("x")).rel(var("y")).isa("subRelation"),
                 var("x").isa("subEntity"),
                 var("y").isa("subEntity")
                 );
-        Set<Pattern> expectedOutput = Sets.newHashSet(
+        Set<Conjunction<?>> expectedOutput = Sets.newHashSet(
                 and(
                         var("r").rel(var("x")).rel(var("y")).isa("subRelation"),
                         var("x").isa("baseEntity"),
@@ -116,19 +102,19 @@ public class OperatorTest {
                         var("y").isa("subEntity"))
         );
 
-        Set<Pattern> output = Operators.typeGeneralise().apply(input, ctx).collect(Collectors.toSet());
+        Set<Conjunction<?>> output = Operators.typeGeneralise().apply(input, ctx).collect(Collectors.toSet());
         assertEquals(expectedOutput, output);
     }
 
     @Test
     public void whenApplyingGeneraliseTypeOperatorToStatementWithVariableType_weRemoveBareIsaStatements(){
-        Pattern input = and(
+        Conjunction<?> input = and(
                 var("r")
                         .rel(var("rx"), var("x"))
                         .isa(var("rtype")),
                 var("x").isa("subEntity")
         );
-        Set<Pattern> expectedOutput = Sets.newHashSet(
+        Set<Conjunction<?>> expectedOutput = Sets.newHashSet(
                 and(
                         var("r")
                                 .rel(var("rx"), var("x"))
@@ -136,10 +122,10 @@ public class OperatorTest {
                         var("x").isa("baseEntity")
                 )
         );
-        Set<Pattern> output = Operators.typeGeneralise().apply(input, ctx).collect(Collectors.toSet());
+        Set<Conjunction<?>> output = Operators.typeGeneralise().apply(input, ctx).collect(Collectors.toSet());
         assertEquals(expectedOutput, output);
     }
-
+/*
     @Test
     public void whenApplyingTypeGenOperatorMultipleTimes_patternsConvergeToEmpty(){
         Pattern input = and(
