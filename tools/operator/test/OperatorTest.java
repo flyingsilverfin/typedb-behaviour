@@ -42,8 +42,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import graql.lang.pattern.Pattern;
 import graql.lang.pattern.property.Property;
 import graql.lang.pattern.property.ThingProperty;
+import graql.lang.pattern.variable.BoundVariable;
+import graql.lang.pattern.variable.Variable;
 import org.junit.Test;
 
 import static graql.lang.Graql.and;
@@ -423,7 +426,10 @@ public class OperatorTest {
                 var("z").iid("0x789")
         );
         Set<Conjunction<?>> outputs = Operators.fuzzVariables().apply(input, ctx).collect(toSet());
-        assertEquals(input.variables().count(), outputs.size());
+        //expect as many outputs as there is distinct user-defined vars
+        assertEquals(
+                input.variables().filter(Variable::isNamed).map(BoundVariable::asUnbound).distinct().count(),
+                outputs.size());
         outputs.forEach(output -> assertNotEquals(input, output));
 
         outputs.forEach(output -> Operators.fuzzVariables().apply(output, ctx)
@@ -469,17 +475,15 @@ public class OperatorTest {
         assertNotEquals(output, output2);
     }
 
-    /*
-    private <T extends VarProperty> T getProperty(Pattern src, Class<T> type){
-        return src.statements().stream()
-                .map(s -> s.getProperty(type))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+    private <T extends Property> T getProperty(Conjunction<?> src, Class<T> type){
+        return src.variables()
+                .flatMap(v -> v.properties().stream())
+                .filter(type::isInstance)
+                .map(type::cast)
                 .findFirst().orElse(null);
     }
 
-
-    
+    /*
     private void testOperatorConvergence(Pattern input, List<Operator> ops) {
         Set<Pattern> output = Sets.newHashSet(input);
         while (!output.isEmpty()){

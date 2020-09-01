@@ -21,25 +21,14 @@ package grakn.verification.tools.operator;
 import com.google.common.collect.ImmutableMap;
 import graql.lang.Graql;
 import graql.lang.pattern.Conjunction;
-import graql.lang.pattern.property.Property;
 import graql.lang.pattern.property.ThingProperty;
 import graql.lang.pattern.variable.BoundVariable;
-import graql.lang.pattern.variable.ThingVariable;
 import graql.lang.pattern.variable.UnboundVariable;
 import graql.lang.pattern.variable.Variable;
-/*
-import graql.lang.property.VarProperty;
-import graql.lang.statement.Statement;
-import graql.lang.statement.Variable;
 
- */
-
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,11 +45,14 @@ public class VariableFuzzyingOperator implements Operator{
     @Override
     public Stream<Conjunction<?>> apply(Conjunction<?> src, TypeContext ctx) {
         //generate new variables and how they map to existing variables
-        Map<Variable, Variable> varTransforms = new HashMap<>();
+        Map<UnboundVariable, UnboundVariable> varTransforms = new HashMap<>();
         src.variables()
+                .filter(Variable::isNamed)
+                .map(BoundVariable::asUnbound)
+                .distinct()
                 .forEach(v -> {
                     String newVarName = UUID.randomUUID().toString();
-                    Variable newVar = Graql.var(newVarName);
+                    UnboundVariable newVar = Graql.var(newVarName);
                     varTransforms.put(v, newVar);
                 });
 
@@ -71,14 +63,15 @@ public class VariableFuzzyingOperator implements Operator{
                 .map(Graql::and);
     }
 
-    private BoundVariable transformStatement(Variable<?> src, Map<Variable, Variable> vars){
+    private BoundVariable<?> transformStatement(Variable<?> src, Map<UnboundVariable, UnboundVariable> vars){
         if (src.isType()) return src.asType();
         List<ThingProperty> transformedProperties = src.asThing().properties().stream()
                 .map(p -> PropertyVariableTransform.transform(p, vars))
                 .distinct()
                 .collect(Collectors.toList());
-        ThingVariable statementVar = vars.getOrDefault(src, src).asThing();
+        UnboundVariable srcVar = Graql.var(src.name());
+        UnboundVariable statementVar = vars.getOrDefault(srcVar, srcVar);
         //make sure to create a fresh variable instead of mutating the old one
-        return statementVar.asUnbound().asThing().asSameThingWith(transformedProperties);
+        return statementVar.asThing().asSameThingWith(transformedProperties);
     }
 }
